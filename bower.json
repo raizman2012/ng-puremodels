@@ -9,6 +9,9 @@
   "keywords": [
     "angular"
   ],
+  "dependencies": {
+    "angular": "~1.2"
+  },
   "license": "MIT",
   "ignore": [
     "**/.*",
