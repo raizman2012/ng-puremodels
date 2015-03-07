@@ -1,4 +1,4 @@
-// puremodels version 0.0.1
+// puremodels version 0.0.2
 angular.module('ng-puremodels', []);
 
 /**
