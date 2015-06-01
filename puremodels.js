@@ -1,4 +1,4 @@
-// puremodels version 0.0.3
+// puremodels version! 0.0.5
 angular.module('ng-puremodels', []);
 
 angular.module('ng-puremodels').factory('action', [function () {

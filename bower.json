@@ -1,6 +1,6 @@
 {
   "name": "ng-puremodels",
-
+  "version": "0.0.5",
   "authors": [
     "raizman2012 <raizman_leonid@hotmail.com>"
   ],
@@ -10,7 +10,7 @@
     "angular"
   ],
   "dependencies": {
-    "angular": "~1.2"
+    "angular": ""
   },
   "license": "MIT",
   "ignore": [
