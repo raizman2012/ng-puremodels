@@ -1,6 +1,594 @@
-// puremodels version 0.0.2
+// puremodels version 0.0.3
 angular.module('ng-puremodels', []);
 
+angular.module('ng-puremodels').factory('action', [function () {
+        var defaultCssAliases = {
+            'add' : 'fa fa-plus'
+        };
+
+        var defaultOptions = {
+            iconClassesPrefix : 'fa fa-',
+            btnClasses : 'btn btn-default',
+            btnClassesProcessing : 'btn btn-warning',
+            btnClassesFinishSuccess : 'btn btn-success',
+            btnClassesFinishFailure : 'btn btn-danger',
+
+            text_processing_suffix : '_processing',
+            text_finish_success_suffix : '_success',
+            text_finish_failure_suffix : '_failure'
+
+        };
+
+        var res = function (actionName, handler, options) {
+            var _this = this;
+
+            if (options === undefined) {
+                options = defaultOptions;
+                options.cssAliases = defaultCssAliases;
+            }
+
+            if (options.cssAliases === undefined) {
+                options.cssAliases = defaultCssAliases;
+            }
+
+            this.name = actionName;
+            this.text = actionName;
+
+
+            this.visible = true;
+            this.processing = false;
+            this.finishing = false;
+
+            if (options.cssAliases[actionName] === undefined) {
+                this.iconClasses = 'fa fa-' + actionName;
+            } else {
+                this.iconClasses = options.cssAliases[actionName];
+            }
+
+
+            this.disabled = false;
+            this.btnClasses = 'btn btn-default';
+
+            if (angular.isFunction(handler[actionName])) {
+                this.invoke = handler[actionName];
+            } else {
+                this.invoke = function () {
+                    this.console.log('empty handler for:' + actionName);
+                }
+            }
+
+            // public methods
+            this.processing = function() {
+                _this.disabled = true;
+                _this.textOrigin = _this.text;
+                _this.btnClassesOrigin = _this.btnClasses;
+
+                _this.text =  _this.text+'_processing';
+                _this.btnClasses = 'btn btn-warning';
+
+            }
+
+            this.finishing = function(success) {
+
+                if (success) {
+                    _this.text = _this.textOrigin+'_success';
+                    _this.btnClasses = 'btn btn-success';
+                } else {
+                    _this.text = _this.textOrigin+'_failure';
+                    _this.btnClasses = 'btn btn-danger';
+                }
+
+            }
+
+            this.normal = function() {
+                _this.text = _this.textOrigin;
+                _this.btnClasses = _this.btnClassesOrigin;
+            }
+        }
+        return res;
+    }]
+);
+angular.module('ng-puremodels').factory('async', ['$timeout', function ($timeout) {
+        var res = function () {
+            var _this = this;
+            var messagesIdCount = 0;
+            var hash = {
+
+            };
+
+            function addAndDeleteAfterTimeout(data, timeoutInSec) {
+                messagesIdCount++;
+                hash[messagesIdCount] = data;
+                var id=messagesIdCount;
+                $timeout(function(){
+                    delete hash[id];
+                }, timeoutInSec*1000);
+
+                return id;
+            }
+
+            function replace(topicId, data) {
+                delete hash[topicId];
+                hash[topicId] = {};
+
+                messagesIdCount++;
+                var id=messagesIdCount;
+
+                var topicIdP = topicId;
+
+                hash[topicId][id] = data;
+
+                return id;
+            }
+
+            function replaceAndDeleteAfterTimeout(topicId, data, timeoutInSec) {
+                delete hash[topicId];
+                hash[topicId] = {};
+
+                messagesIdCount++;
+                var id=messagesIdCount;
+
+                var topicIdP = topicId;
+
+                hash[topicId][id] = data;
+
+                $timeout(function(){
+                    delete hash[topicIdP][id];
+                    console.log('deleted')
+                }, timeoutInSec*1000);
+
+                return id;
+            }
+
+            function withBoolean(setter, operation) {
+                setter(true);
+
+            }
+
+            this.objectsMap = hash;
+            this.addAndDeleteAfterTimeout = addAndDeleteAfterTimeout;
+            this.replaceAndDeleteAfterTimeout = replaceAndDeleteAfterTimeout;
+            this.replace = replace;
+        }
+        return res;
+    }]
+);
+angular.module('ng-puremodels').factory('crud', ['action', 'sortable', '$timeout', function (action, sortable, $timeout) {
+    var result = function (someList, names, crudPermissions) {
+        var _this = this;
+
+
+        var sortableSelectableList = new sortable(someList, names);
+        var itemInEdit = null;
+        var itemIndexInEdit = -1;
+
+
+        if (crudPermissions === undefined) {
+            crudPermissions = {
+                view: true,
+                edit: true,
+                add: true,
+                remove: true
+            }
+        }
+
+
+        function create(prototype) {
+            return {};
+        }
+
+        function add() {
+            _this.adding = true;
+
+            recomputeActionsEnabledStates();
+        }
+
+        function close() {
+            _this.adding = false;
+            _this.editing = false;
+
+
+            if (!_this.adding && !_this.editing) {
+                if (_this.getSelectedIndex() !== -1) {
+                    _this.toggleIndex(_this.getSelectedIndex());
+                }
+            }
+            recomputeActionsEnabledStates();
+        }
+
+        function edit() {
+            _this.adding = false;
+            _this.editing = true;
+
+            _this.itemInEditOriginal = sortableSelectableList.selectable.getSelectedObject();
+            _this.itemInEdit = angular.copy(_this.itemInEditOriginal);
+
+            recomputeActionsEnabledStates();
+        }
+
+        function persistAddDefault(success, error) {
+            $timeout(function() {
+                success(_this.itemInEdit);
+            }, 1000);
+        }
+
+        function persistSaveDefault(success, error) {
+            $timeout(function() {
+                success(_this.itemInEdit);
+            }, 1000);
+        }
+
+        function persistTrashDefault(success, error) {
+            var selectedObject = sortableSelectableList.selectable.getSelectedObject();
+            $timeout(function() {
+                success(selectedObject);
+            }, 1000);
+        }
+
+        function save() {
+            // save acts differently when adding new
+            if (_this.adding) {
+                _this.error = undefined;
+                _this.saving = true;
+
+                _this.actions.save.processing();
+                _this.persistAdd(function (newItem) {
+                    sortableSelectableList.list.push(newItem);
+                    sortableSelectableList.selectable.restoreSelection();
+
+                    // sort again
+                    sortableSelectableList.sorting.onChange();
+
+                    _this.actions.save.finishing(true);
+                    _this.saving = false;
+                    $timeout(function() {
+                        _this.actions.save.normal();
+
+                        _this.adding = false;
+                        _this.editing = false;
+
+                        recomputeActionsEnabledStates();
+                    }, 2000);
+
+
+                }, function (error) {
+                    _this.actions.save.normal();
+                    _this.saving = false;
+                    _this.error = error;
+                    recomputeActionsEnabledStates();
+                });
+            }
+
+            if (_this.editing) {
+                _this.error = undefined;
+                _this.saving = true;
+
+                _this.actions.save.processing();
+
+                _this.persistSave(function (updatedItem) {
+                    angular.copy(updatedItem, _this.itemInEditOriginal);
+
+                    _this.actions.save.finishing(true);
+                    _this.saving = false;
+                    $timeout(function() {
+                        _this.actions.save.normal();
+
+                        _this.adding = false;
+                        _this.editing = false;
+
+                        recomputeActionsEnabledStates();
+                    }, 2000);
+
+
+                }, function (error) {
+                    _this.actions.save.normal();
+                    _this.saving = false;
+                    _this.error = error;
+                    recomputeActionsEnabledStates();
+                });
+            }
+
+        }
+
+        function trash() {
+            _this.persistTrash(function (deletedItem) {
+                var indexOfDeletedItem = sortableSelectableList.selectable.indexOf(deletedItem);
+                if (indexOfDeletedItem != -1) {
+                    var removed = sortableSelectableList.list.splice(indexOfDeletedItem, 1);
+                }
+
+                sortableSelectableList.selectable.restoreSelection();
+
+                // sort again
+                sortableSelectableList.sorting.onChange();
+
+                recomputeActionsEnabledStates();
+
+            }, function (error) {
+                _this.error = error;
+            });
+
+            recomputeActionsEnabledStates();
+        }
+
+
+        function recomputeActionsEnabledStates() {
+            if (_this.adding || _this.editing) {
+                _this.actions.add.visible = false;
+                _this.actions.edit.visible = false;
+                _this.actions.save.visible = true;
+                _this.actions.trash.visible = false;
+                _this.actions.close.visible = true;
+            } else {
+                _this.actions.add.visible = true;
+                _this.actions.edit.visible = true;
+                _this.actions.save.visible = false;
+                _this.actions.trash.visible = true;
+                _this.actions.close.visible = true;
+            }
+
+            if (_this.loading || _this.saving) {
+                _this.actions.add.disable = true;
+                _this.actions.edit.disable = true;
+                _this.actions.save.disable = true;
+                _this.actions.trash.disable = true;
+                _this.actions.close.disable = true;
+
+
+                return;
+            }
+
+            if (_this.adding || _this.editing) {
+                _this.actions.add.disable = true;
+                _this.actions.edit.disable = true;
+                _this.actions.save.disable = false;
+                _this.actions.trash.disable = true;
+                _this.actions.close.disable = false;
+
+                return;
+            }
+
+            if (_this.getSelectedIndex() !== -1) {
+                _this.actions.add.disable = false;
+                _this.actions.edit.disable = false;
+                _this.actions.save.disable = true;
+                _this.actions.trash.disable = false;
+                _this.actions.close.disable = false;
+
+                return;
+            } else {
+                _this.actions.add.disable = false;
+                _this.actions.edit.disable = true;
+                _this.actions.save.disable = true;
+                _this.actions.trash.disable = true;
+                _this.actions.close.disable = true;
+            }
+
+            console.log('_this.actions.edit.disable:', _this.actions.edit.disable);
+        }
+
+        // public flags
+        this.editing = false;
+        this.loading = false;
+        this.saving = false;
+        this.adding = false;
+
+        // when editing, keep pointer to original item
+        this.itemInEdit = null;
+        this.itemInEditOriginal = null;
+
+        // actions
+        this.add = add;
+        this.save = save;
+        this.edit = edit;
+        this.trash = trash;
+        this.close = close;
+
+        // public methods
+        this.persistAdd = persistAddDefault;
+        this.persistSave = persistSaveDefault;
+        this.persistTrash = persistTrashDefault;
+
+
+        // delegate for convinience
+        this.list = sortableSelectableList.list;
+        this.selectable = sortableSelectableList.selectable;
+        this.sorting = sortableSelectableList.sorting;
+
+        // selection disabled on curtain conditions
+        this.toggleIndex = function (i) {
+            if (!_this.loading && !_this.saving && !_this.editing && !_this.adding) {
+                _this.selectable.toggleIndex(i);
+                recomputeActionsEnabledStates();
+            }
+        }
+
+        this.getSelectedIndex = function() {
+            return _this.selectable.getSelectedIndex();
+        }
+
+        // make it easier to activate
+        var defaultActionsNames = 'add,save,edit,trash,close'.split(',');
+        var actions = {};
+
+        // complete actions metadata
+        for (var i = 0; i < defaultActionsNames.length; i++) {
+            var actionName = defaultActionsNames[i];
+            actions[actionName] = new action(actionName, this);
+        }
+
+        this.actions = actions;
+
+        recomputeActionsEnabledStates();
+    };
+
+    return result;
+}]);
+angular.module('ng-puremodels').factory('groupable', ['selectable', function (selectable) {
+    var res = function (someList, propertiesArray) {
+        var _this = this;
+
+        var list = someList === undefined ? [] : someList.slice(0);
+
+        function default_schema_info_provider() {
+            this.getPropertyType = function (schemaName, propertyName, propertyValue) {
+                if (propertyValue === undefined) {
+                    return 'object';
+                }
+
+                var res = typeof propertyValue;
+                if (res === 'object') {
+                    if (Object.prototype.toString.call(propertyValue) === '[object Array]') {
+                        res = 'array';
+                    }
+                }
+                return res;
+            }
+        }
+
+        var schema_info_provider = new default_schema_info_provider();
+
+        var properties = _.map(propertiesArray, function(name) {
+            var type = typeof list[0][name];
+            return { 'name' : name, 'type' : type};
+        });
+        properties.splice(0, 0, { 'name' : '__none__'});
+
+
+        var indexedProperties = _.indexBy(properties, 'name');
+
+        var selectableProperties = new selectable(properties);
+
+        selectableProperties.selectIndex(0); // by default its not grouped
+
+        function groupBy(name) {
+            _this.groups = _.chain(list)
+                .groupBy(name, indexedProperties[name].iteratee)
+                .value();
+
+        };
+
+        selectableProperties.fireChangeSelectionEvent = function() {
+            var name = _this.selectableProperties.getSelectedObject().name;
+            if (name === 'none') {
+                _this.groups = undefined;
+                return;
+            }
+
+            groupBy(name);
+        }
+
+
+
+        this.groupBy = groupBy;
+        this.selectableProperties = selectableProperties;
+    }
+    return res;
+}]);
+
+angular.module('ng-puremodels').factory('paging', function () {
+        var res = function (totalItems, pageSize) {
+            var _this = this;
+
+            this.totalItems = totalItems;
+            this.currentPage = 0;
+            this.currentOffset = 0;
+            this.limitTo = 0;
+            this.pageNumbers = [];
+            this.visitedPages = {};
+            this.needPaging = true;
+
+            this.itemsPerPage = pageSize !== undefined ? pageSize : 4;
+            this.maxPagesInView = 5;
+
+            function clearArray(array) {
+                while (array.length) {
+                    array.pop();
+                }
+            }
+
+            this.hasNext = function () {
+                if ((_this.currentPage + 1) * _this.itemsPerPage > _this.totalItems) {
+                    return false;
+                }
+                return true;
+            }
+
+            this.more = function () {
+                _this.next();
+            };
+
+            this.next = function () {
+                _this.setPage(_this.currentPage + 1);
+            };
+
+            this.hasPrev = function () {
+                if ((_this.currentPage - 1) * _this.itemsPerPage < 0) {
+                    return false;
+                }
+                return true;
+            };
+
+            this.prev = function () {
+                if (!_this.hasPrev()) {
+                    return;
+                }
+                _this.setPage(_this.currentPage - 1);
+            };
+
+            this.home = function () {
+                _this.setPage(0);
+            };
+
+            this.hasEnd = function () {
+                if (_this.totalItems === -1) {
+                    return false;
+                }
+                return true;
+            };
+
+
+            this.all = function () {
+                _this.itemsPerPage = _this.totalItems;
+                _this.needPaging= false;
+                _this.setPage(0);
+            };
+
+            this.end = function () {
+                _this.itemsPerPage =
+                _this.setPage(0);
+            };
+
+            this.setPage = function (pageNo) {
+                _this.currentPage = pageNo;
+
+                // recompute some variables
+                _this.limitTo = (_this.currentPage + 1) * _this.itemsPerPage;
+                _this.currentOffset = _this.currentPage * _this.itemsPerPage;
+
+                clearArray(_this.pageNumbers);
+
+                for (var i = 0; i < _this.maxPagesInView; i++) {
+                    if ( i  * _this.itemsPerPage <= _this.totalItems) {
+                        _this.pageNumbers.push(i);
+                    } else {
+
+                    }
+
+                }
+            };
+
+            this.pageChanged = function () {
+                //$log.log('Page changed to: ' + $scope.currentPage);
+            };
+
+
+
+            this.setPage(0);
+        }
+        return res;
+    }
+);
 /**
  * @ngdoc service
  * @name ng-puremodels.service:selectableList
@@ -12,14 +600,15 @@ angular.module('ng-puremodels', []);
  *
  * Two modules of selection are not affecting each other.
  **/
-angular.module('ng-puremodels').factory('selectableList', function () {
+angular.module('ng-puremodels').factory('selectable', function () {
     var res = function (someList) {
         var _this = this;
-        var list = someList.slice(0);
+        var list = someList !== undefined ? someList.slice(0) : [];
 
         // for single selection
         var selectedIndex = -1;
         var selectedObject = undefined;
+
 
         // for 'multi' selection
         var multiSelections = [];
@@ -31,7 +620,7 @@ angular.module('ng-puremodels').factory('selectableList', function () {
             multiSelections.push(false);
         }
 
-        function clearArray (array) {
+        function clearArray(array) {
             while (array.length) {
                 array.pop();
             }
@@ -85,12 +674,60 @@ angular.module('ng-puremodels').factory('selectableList', function () {
             fireChangeMultiSelectionEvent(-1, undefined);
         }
 
+        function indexOf(object) {
+            for (var j = 0; j < list.length; j++) {
+                var currInList = list[j];
+
+                if (_this.equal(object, currInList)) {
+                    return j;
+                }
+            }
+            return -1;
+        }
+
+        function restoreSelection() {
+            // empty selection arrays
+            clearArray(multiSelections);
+            clearArray(multiSelectedIndexes);
+
+            for (var i = 0; i < list.length; i++) {
+                multiSelections.push(false);
+            }
+
+            for (var i = 0; i < multiSelectedObjects.length; i++) {
+                var oldSelected = multiSelectedObjects[i];
+                for (var j = 0; j < list.length; j++) {
+                    var currInList = list[j];
+
+                    if (_this.equal(oldSelected, currInList)) {
+                        multiSelections[j] = true;
+                    }
+                }
+            }
+
+            rebuildMultiSelectionArrays();
+
+            // do same for single selection
+            selectedIndex = -1;
+            if (selectedObject !== undefined) {
+                for (var j = 0; j < list.length; j++) {
+                    var currInList = list[j];
+
+                    if (_this.equal(selectedObject, currInList)) {
+                        selectedIndex = j;
+                    }
+                }
+            }
+        }
+
         // private method
         // set selected value and fire event if value was changed
         function multiSetSelection(i, value) {
+            if (i < 0 || i >= list.length) {
+                return;
+            }
             var oldValue = multiSelections[i];
             multiSelections[i] = value;
-            console.log('oldValue:', oldValue, 'value :', value);
             if (oldValue !== value) {
                 fireChangeMultiSelectionEvent(i, value);
             }
@@ -126,6 +763,9 @@ angular.module('ng-puremodels').factory('selectableList', function () {
         // single selection methods
         function getSelectedIndex() {
             return selectedIndex;
+        }
+        function getSelectedObject() {
+            return selectedObject;
         }
 
         function setSelectedAndFireChangeEvent(i) {
@@ -203,6 +843,17 @@ angular.module('ng-puremodels').factory('selectableList', function () {
          */
         this.getSelectedIndex = getSelectedIndex;
 
+        /**
+         * @ngdoc method
+         * @name getSelectedObject
+         * @methodOf ng-puremodels.service:selectableList
+         *
+         * @description
+         * return selected object in the array, or undefined if nothing selected
+         *
+         *
+         */
+        this.getSelectedObject = getSelectedObject;
 
         /**
          * @ngdoc method
@@ -377,12 +1028,239 @@ angular.module('ng-puremodels').factory('selectableList', function () {
          */
         this.list = list;
 
+        /**
+         * @ngdoc method
+         * @name indexOf
+         * @propertyOf ng-puremodels.service:selectableList
+         *
+         * @description
+         * find index of object in list, based on 'equal' method
+         * return index or -1
+         */
+        this.indexOf = indexOf;
+
+        this.idPropertyNames = undefined;
+
+        this.restoreSelection = restoreSelection;
+
+        this.equal = function (o1, o2) {
+            if (_this.idPropertyNames === undefined) {
+                _this.idPropertyNames = [];
+                for (var prop in _this.idPropertyNames) {
+                    _this.idPropertyNames.push(prop);
+                }
+            }
+            if (_this.idPropertyNames.length === 0) {
+                return o1 === o2;
+            }
+            for (var i = 0; i < _this.idPropertyNames.length; i++) {
+                var prop = _this.idPropertyNames[i];
+                var v1 = o1[prop];
+                var v2 = o2[prop];
+                if (v1 !== v2) {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 
     return res;
 });
 
 
+angular.module('ng-puremodels').factory('sortable', ['selectable', 'sorting', function (selectable, sorting) {
+    var result = function (someList, names) {
+        var _this = this;
+
+        var selectableList = new selectable(someList);
+        var sorter = new sorting(names);
+
+        sorter.onChange = function () {
+
+            selectableList.list.sort(function (a, b) {
+                for (var i = 0; i < sorter.statusesOrderedFifo.length; i++) {
+
+                    var pname = sorter.statusesOrderedFifo[i];
+
+                    var status = sorter.statuses[pname];
+
+                    if (status === undefined) {
+                        console.log('null for:', pname);
+                    }
+                    if (status.sortDir === 0) {
+                        continue;
+                    }
+
+                    var va = a[pname];
+                    var vb = b[pname];
+
+                    if (va === vb) {
+                        continue;
+                    }
+                    if (va === undefined) {
+                        return status.sortDir * -1;
+                    }
+                    if (vb === undefined) {
+                        return status.sortDir * 1;
+                    }
+
+                    if (angular.isFunction(va.localeCompare)) {
+                        var res = va.localeCompare(vb) * status.sortDir;
+                    } else {
+                        if (va == vb) {
+                            return 0;
+                        }
+
+                        var res = va > vb ? status.sortDir : -1 * status.sortDir;
+                    }
+
+
+                    return res;
+                }
+                return 0;
+            });
+
+            selectableList.restoreSelection();
+        }
+
+
+        this.list = selectableList.list;
+        this.selectable = selectableList;
+        this.sorting = sorter;
+    }
+    return result;
+}]);
+
+
+angular.module('ng-puremodels').factory('sorting', function () {
+    var res = function (names) {
+        var _this = this;
+        var names = names !== undefined ? names : [];
+
+        var statuses = {};
+        var statusesOrderedFifo = [];
+
+        function init() {
+            for (var i = 0; i < names.length; i++) {
+                var sortMeta = {
+                    name: names[i],
+                    defaultSortDir: 0,
+                    sortDir: 0
+                };
+                statuses[names[i]] = sortMeta;
+
+            }
+        }
+
+        function createMeta(name) {
+            var sortMeta = {
+                name: name,
+                defaultSortDir: 0,
+                sortDir: 0
+            };
+            return sortMeta;
+        }
+
+        function moveToHead(name) {
+            var i = findIndexForName(name, statusesOrderedFifo);
+            if (i === -1) {
+                // first time
+                statusesOrderedFifo.splice(0, 0, name);
+                names.splice(0, 0, name);
+            } else {
+                // found
+                statusesOrderedFifo.splice(i, 1);
+                statusesOrderedFifo.splice(0, 0, name);
+
+            }
+        }
+
+        function findIndexForName(name, array) {
+            for (var i = 0; i < array.length; i++) {
+                var curr = array[i];
+                if (curr === name) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        init();
+
+        function getStatus(pname) {
+            if (statuses[pname] === undefined) {
+                statuses[pname] = createMeta(pname);
+            }
+            return statuses[pname];
+        }
+
+        function defaultOnChange(pname, oldDir, newDir) {
+            console.log('pname:', pname, ' oldDir:', oldDir, ' newDir:', newDir);
+        }
+
+        function changeStatus(pname, dir) {
+            if (statuses[pname] === undefined) {
+                statuses[pname] = createMeta(pname);
+            }
+
+            statuses[pname].sortDir = dir;
+            moveToHead(pname);
+            _this.onChange();
+        }
+
+        // public methods
+        this.sortUp = function (pname) {
+            changeStatus(pname, 1);
+        }
+
+        this.sortDown = function (pname) {
+            changeStatus(pname, -1);
+        }
+
+        this.sortToggle = function (pname) {
+            var status = getStatus(pname);
+            console.log('pname:', pname, ' status:', status);
+            if (getStatus(pname).sortDir === 0) {
+                _this.sortDown(pname);
+                return;
+            }
+            changeStatus(pname, status.sortDir * -1);
+        }
+
+        this.sortReset = function (pname) {
+            changeStatus(pname, getStatus(pname).defaultSortDir);
+        }
+
+        this.sortAllReset = function () {
+            for (var i = 0; i < names.length; i++) {
+                var status = getStatus(names[i]);
+                status.sortDir = status.defaultSortDir;
+            }
+            _this.onChange();
+        }
+
+        this.getStatusVerbose = function(pname, translation) {
+            if (translation === undefined) {
+                translation = ['sort-asc', 'sort', 'sort-desc'];
+            }
+
+            var status = getStatus(pname);
+
+            return translation[status.sortDir+1];
+        }
+
+        this.onChange = defaultOnChange;
+
+        // public properties
+        this.statuses = statuses;
+        this.statusesOrderedFifo = statusesOrderedFifo;
+        this.names = names;
+
+
+    }
+    return res;
+});
 /**
  * @ngdoc service
  * @name ng-puremodels.service:tree
@@ -391,7 +1269,7 @@ angular.module('ng-puremodels').factory('selectableList', function () {
  * structure provider for any object, usefull for complex recurcive structures
  * like trees, file systems, data structure etc
  **/
-angular.module('ng-puremodels').factory('tree', ['selectableList', function (selectableList) {
+angular.module('ng-puremodels').factory('tree', ['selectable', function (selectable) {
     var result = function (someObject, provider) {
         var _this = this;
         var root = someObject;
@@ -421,11 +1299,91 @@ angular.module('ng-puremodels').factory('tree', ['selectableList', function (sel
             };
         }
 
+        function getParent(node) {
+            var path = node.path;
+            if (path.length === 0) {
+                return undefined; // root
+            }
+            var currNode = rootNode;
+            for (var i = 0; i < path.length - 1; i++) {
+                var currNode = currNode.children[path[i]];
+            }
+            return currNode;
+        }
+
+        function resetNode(node) {
+            if (node.children === undefined) {
+                return;
+            }
+
+            if (node.leaf) {
+                return;
+            }
+
+            for (var i = 0; i < node.children.length; i++) {
+                var currNode = node.children[i];
+
+
+                var path = node.path.slice(0);
+                path.push(i);
+                currNode.path = path;
+
+                currNode.id = currNode.path.join('-');
+
+                resetNode(currNode);
+            }
+        }
+
+        function dropNodeOnAnotherNode(node, anotherNode) {
+            if (anotherNode.leaf) {
+                moveNodeAfterAnotherNode(node, anotherNode);
+                return;
+            } else {
+                // drop on folder should add node to children
+                deleteNode(node);
+                addNode(node, anotherNode);
+            }
+        }
+
+        function addNode(node, anotherNode) {
+            anotherNode.children.push(node);
+            resetNode(anotherNode);
+        }
+
+        function deleteNode(node) {
+            var parentNode = getParent(node);
+            if (parentNode === undefined) {
+                return; // cant remove root
+            }
+            var indexOfNodeInParent = node.path[node.path.length-1];
+            parentNode.children.splice(indexOfNodeInParent, 1);
+            resetNode(parentNode);
+        }
+
+        function moveNodeAfterAnotherNode(node, anotherNode) {
+            deleteNode(node);
+
+            var parentOfAnotherNode = getParent(anotherNode);
+            var index = parentOfAnotherNode.children.length; // default
+
+            // find index of another node, which can be probably changed after deleting
+            for (var i = 0; i < parentOfAnotherNode.children.length; i++) {
+                var curr = parentOfAnotherNode.children[i];
+                if (curr === anotherNode) {
+                    index = i;
+                    break;
+                }
+            }
+
+            parentOfAnotherNode.children.splice(index+1, 0, node);
+
+            resetNode(parentOfAnotherNode);
+        }
+
         function createNode(index, parentNode, object) {
-            var res = {path: [], parent: parentNode, data: object, leaf: true, loading: true, expanded: false};
+            var res = {path: [], data: object, leaf: true, loading: true, expanded: false};
 
             res.leaf = provider.isLeaf(object);
-
 
             if (parentNode === undefined) {
                 return res;
@@ -511,6 +1469,7 @@ angular.module('ng-puremodels').factory('tree', ['selectableList', function (sel
                 if (node.children === undefined) {
                     node.loading = true;
                     provider.getChildren(node.data, function (children) {
+
                         node.loading = false;
                         node.children = [];
                         for (var i = 0; i < children.length; i++) {
@@ -519,7 +1478,7 @@ angular.module('ng-puremodels').factory('tree', ['selectableList', function (sel
                         }
 
 
-                        node.selectableChildren = new selectableList(node.children);
+                        node.selectableChildren = new selectable(node.children);
 
                         if (callback !== undefined) {
                             callback(node);
@@ -568,7 +1527,6 @@ angular.module('ng-puremodels').factory('tree', ['selectableList', function (sel
             if (node === undefined) {
                 node = _this.rootNode;
             }
-            console.log('collapse:', node.path);
             collapseAllPrivate(node);
 
             recomputeArrayOfVisibleNodes();
@@ -580,6 +1538,9 @@ angular.module('ng-puremodels').factory('tree', ['selectableList', function (sel
             }
 
             node.expanded = false;
+            if (node.children === undefined) {
+                return;
+            }
             for (var i = 0; i < node.children.length; i++) {
                 var child = node.children[i];
 
@@ -593,7 +1554,7 @@ angular.module('ng-puremodels').factory('tree', ['selectableList', function (sel
             var current = nn;
             var found = undefined;
             while (found === undefined) {
-                var current = current.parent;
+                var current = getParent(current);
                 if (current === undefined) {
                     break; // root node
                 }
@@ -601,10 +1562,11 @@ angular.module('ng-puremodels').factory('tree', ['selectableList', function (sel
                 var indexInParent = current.path[current.path.length-1];
                 var nextIndexInParent = indexInParent+1;
 
-                if (current.parent === undefined || current.parent.children.length === nextIndexInParent) {
+                var currentParent = getParent(current);
+                if (currentParent === undefined || currentParent.children.length === nextIndexInParent) {
                     continue;
                 } else {
-                    found = current.parent.children[nextIndexInParent];
+                    found = currentParent.children[nextIndexInParent];
                     break;
                 }
             }
@@ -618,8 +1580,9 @@ angular.module('ng-puremodels').factory('tree', ['selectableList', function (sel
                 return;
             }
 
+            var nodeParent = getParent(node);
             if (node.leaf) {
-                if (node.parent === undefined) {
+                if (nodeParent === undefined) {
                     callback(undefined); // root without an children
                     return;
                 }
@@ -628,16 +1591,14 @@ angular.module('ng-puremodels').factory('tree', ['selectableList', function (sel
             var indexInParent = node.path[node.path.length-1];
             var nextIndexInParent = indexInParent+1;
             if (node.leaf) {
-                //console.log('leaf');
-                if (node.parent.children.length === nextIndexInParent) {
+                if (nodeParent.children.length === nextIndexInParent) {
                     callback(findNextInParent(node));
                 } else {
                     // return next child
-                    callback(node.parent.children[nextIndexInParent]);
+                    callback(nodeParent.children[nextIndexInParent]);
                     return;
                 }
             } else {
-                // console.log('not leaf');
                 // not leaf
                 expandNodeAsync(node, function(nn){
                     if (nn.children !== undefined && nn.children.length > 0) {
@@ -673,7 +1634,8 @@ angular.module('ng-puremodels').factory('tree', ['selectableList', function (sel
 
         function selectNodeAndExpandParent(node) {
             selectNode(node);
-            expandNode(node.parent);
+
+            expandNode(getParent(node));
         }
 
         function collectExpandedNodesWithLeafs(currNode, resArray) {
@@ -690,7 +1652,6 @@ angular.module('ng-puremodels').factory('tree', ['selectableList', function (sel
             var res = [];
             collectExpandedNodesWithLeafs(rootNode, res);
             rootNode.expandedNodesAndLeafs = res;
-            //console.log('res:',res);
             return res;
         }
 
@@ -703,7 +1664,6 @@ angular.module('ng-puremodels').factory('tree', ['selectableList', function (sel
 
 
         this.rootNode = rootNode;
-
 
         // public methods
 
@@ -903,6 +1863,13 @@ angular.module('ng-puremodels').factory('tree', ['selectableList', function (sel
         this.expandAllAsync = expandAllAsync;
 
         this.collapseAll = collapseAll;
+
+        // add/remove/move
+        this.addNode = addNode;
+        this.dropNodeOnAnotherNode = dropNodeOnAnotherNode;
+        this.deleteNode = deleteNode;
+        this.resetNode = resetNode;
+        this.getParent = getParent;
     }
 
     return result;
