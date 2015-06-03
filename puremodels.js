@@ -1,4 +1,4 @@
-// puremodels version! 0.0.5
+// puremodels version 0.0.6
 angular.module('ng-puremodels', []);
 
 angular.module('ng-puremodels').factory('action', [function () {
@@ -591,14 +591,14 @@ angular.module('ng-puremodels').factory('paging', function () {
 );
 /**
  * @ngdoc service
- * @name ng-puremodels.service:selectableList
+ * @name ng-puremodels.service:selectable
  *
  * @description
  * wrap array with select-unselect-event on select functionality
  * selection can be 'single' : only one index can be selected,
  * and 'multi' when number of elements are selected.
  *
- * Two modules of selection are not affecting each other.
+ * Two types of selection(single and multi) are not affecting each other.
  **/
 angular.module('ng-puremodels').factory('selectable', function () {
     var res = function (someList) {
@@ -834,7 +834,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name getSelectedIndex
-         * @methodOf ng-puremodels.service:selectableList
+         * @methodOf ng-puremodels.service:selectable
          *
          * @description
          * return selected index in the array, or -1 if nothing selected
@@ -846,7 +846,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name getSelectedObject
-         * @methodOf ng-puremodels.service:selectableList
+         * @methodOf ng-puremodels.service:selectable
          *
          * @description
          * return selected object in the array, or undefined if nothing selected
@@ -858,7 +858,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name selectIndex
-         * @methodOf ng-puremodels.service:selectableList
+         * @methodOf ng-puremodels.service:selectable
          *
          * @description
          * change selected index and fire event if index was changed
@@ -870,7 +870,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name unselectIndex
-         * @methodOf ng-puremodels.service:selectableList
+         * @methodOf ng-puremodels.service:selectable
          *
          * @description
          * unselect index and fire event if index was changed
@@ -882,7 +882,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name unselectIndex
-         * @methodOf ng-puremodels.service:selectableList
+         * @methodOf ng-puremodels.service:selectable
          *
          * @description
          * toggle selection and fire event if index was changed
@@ -894,7 +894,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name fireChangeSelectionEvent
-         * @propertyOf ng-puremodels.service:selectableList
+         * @propertyOf ng-puremodels.service:selectable
          *
          * @description
          * function to invoke on change selection event
@@ -904,7 +904,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name fireChangeMultiSelectionEvent
-         * @propertyOf ng-puremodels.service:selectableList
+         * @propertyOf ng-puremodels.service:selectable
          *
          * @description
          * function to invoke on change multi selection event
@@ -916,7 +916,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name unselectAll
-         * @methodOf ng-puremodels.service:selectableList
+         * @methodOf ng-puremodels.service:selectable
          *
          * @description
          * unselect all objects
@@ -926,7 +926,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name selectAll
-         * @methodOf ng-puremodels.service:selectableList
+         * @methodOf ng-puremodels.service:selectable
          *
          * @description
          * select all objects
@@ -936,7 +936,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name toggleAll
-         * @methodOf ng-puremodels.service:selectableList
+         * @methodOf ng-puremodels.service:selectable
          *
          * @description
          * toggle  all objects multi selection
@@ -946,7 +946,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name multiSelect
-         * @methodOf ng-puremodels.service:selectableList
+         * @methodOf ng-puremodels.service:selectable
          *
          * @description
          * select object in multi selection
@@ -958,7 +958,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name multiUnselect
-         * @methodOf ng-puremodels.service:selectableList
+         * @methodOf ng-puremodels.service:selectable
          *
          * @description
          * unselect object in multi selection
@@ -970,7 +970,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name multiToggleSelect
-         * @methodOf ng-puremodels.service:selectableList
+         * @methodOf ng-puremodels.service:selectable
          *
          * @description
          * toggleSelect selection on object
@@ -982,7 +982,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name multiSelections
-         * @propertyOf ng-puremodels.service:selectableList
+         * @propertyOf ng-puremodels.service:selectable
          *
          * @description
          * array of booleans for selected states
@@ -992,7 +992,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name multiSelectedObjects
-         * @propertyOf ng-puremodels.service:selectableList
+         * @propertyOf ng-puremodels.service:selectable
          *
          * @description
          * array selected objects
@@ -1002,7 +1002,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name multiSelectedIndexes
-         * @propertyOf ng-puremodels.service:selectableList
+         * @propertyOf ng-puremodels.service:selectable
          *
          * @description
          * array selected indexes
@@ -1011,7 +1011,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name getList
-         * @methodOf ng-puremodels.service:selectableList
+         * @methodOf ng-puremodels.service:selectable
          *
          * @description
          * return array of objects
@@ -1021,7 +1021,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name list
-         * @propertyOf ng-puremodels.service:selectableList
+         * @propertyOf ng-puremodels.service:selectable
          *
          * @description
          * array of objects
@@ -1031,7 +1031,7 @@ angular.module('ng-puremodels').factory('selectable', function () {
         /**
          * @ngdoc method
          * @name indexOf
-         * @propertyOf ng-puremodels.service:selectableList
+         * @propertyOf ng-puremodels.service:selectable
          *
          * @description
          * find index of object in list, based on 'equal' method
@@ -1069,12 +1069,22 @@ angular.module('ng-puremodels').factory('selectable', function () {
 });
 
 
-angular.module('ng-puremodels').factory('sortable', ['selectable', 'sorting', function (selectable, sorting) {
+/**
+ * @ngdoc service
+ * @name ng-puremodels.service:sortable
+ *
+ * @description
+ * wrap selectable array with sorting functionality
+ **/
+angular.module('ng-puremodels').factory('sortable', ['$parse', 'selectable', 'sorting', function ($parse, selectable, sorting) {
     var result = function (someList, names) {
         var _this = this;
 
         var selectableList = new selectable(someList);
         var sorter = new sorting(names);
+
+        var getters = {};
+
 
         sorter.onChange = function () {
 
@@ -1082,6 +1092,9 @@ angular.module('ng-puremodels').factory('sortable', ['selectable', 'sorting', fu
                 for (var i = 0; i < sorter.statusesOrderedFifo.length; i++) {
 
                     var pname = sorter.statusesOrderedFifo[i];
+                    if (getters[pname] === undefined) {
+                        getters[pname] = $parse('obj.' + pname);
+                    }
 
                     var status = sorter.statuses[pname];
 
@@ -1092,8 +1105,15 @@ angular.module('ng-puremodels').factory('sortable', ['selectable', 'sorting', fu
                         continue;
                     }
 
-                    var va = a[pname];
-                    var vb = b[pname];
+                    //var va = a[pname];
+                    var context = {obj: a};
+                    var va = getters[pname](context);
+
+                    //var vb = b[pname];
+                    var context = {obj: b};
+                    var vb = getters[pname](context);
+
+                    //console.log('va:', va, ' vb:', vb);
 
                     if (va === vb) {
                         continue;
@@ -1124,15 +1144,52 @@ angular.module('ng-puremodels').factory('sortable', ['selectable', 'sorting', fu
             selectableList.restoreSelection();
         }
 
+        // public properties
 
+        /**
+         * @ngdoc method
+         * @name list
+         * @propertyOf ng-puremodels.service:sortable
+         *
+         * @description
+         * list of objects
+         */
         this.list = selectableList.list;
+
+        /**
+         * @ngdoc method
+         * @name selectable
+         * @propertyOf ng-puremodels.service:sortable
+         *
+         * @description
+         * selectable, so all methods of selectable can be accessed
+         */
         this.selectable = selectableList;
+
+        /**
+         * @ngdoc method
+         * @name sorting
+         * @propertyOf ng-puremodels.service:sortable
+         *
+         * @description
+         * sorting
+         */
         this.sorting = sorter;
+
     }
     return result;
 }]);
 
 
+/**
+ * @ngdoc service
+ * @name ng-puremodels.service:sorting
+ *
+ * @description
+ * provide metadata for sort functionality.
+ * The concept of sort itself and metadata is separated becouse sometimes sorting
+ * performed on server , not on client
+ **/
 angular.module('ng-puremodels').factory('sorting', function () {
     var res = function (names) {
         var _this = this;
@@ -1186,7 +1243,7 @@ angular.module('ng-puremodels').factory('sorting', function () {
             return -1;
         }
 
-        init();
+
 
         function getStatus(pname) {
             if (statuses[pname] === undefined) {
@@ -1196,7 +1253,7 @@ angular.module('ng-puremodels').factory('sorting', function () {
         }
 
         function defaultOnChange(pname, oldDir, newDir) {
-            console.log('pname:', pname, ' oldDir:', oldDir, ' newDir:', newDir);
+            //console.log('pname:', pname, ' oldDir:', oldDir, ' newDir:', newDir);
         }
 
         function changeStatus(pname, dir) {
@@ -1209,18 +1266,49 @@ angular.module('ng-puremodels').factory('sorting', function () {
             _this.onChange();
         }
 
+        init();
+
         // public methods
+        /**
+         * @ngdoc method
+         * @name sortUp
+         * @methodOf ng-puremodels.service:sorting
+         *
+         * @param {pname} string name of property
+         * @description
+         * change meta data to reflect sort up
+         */
         this.sortUp = function (pname) {
             changeStatus(pname, 1);
         }
 
+        /**
+         * @ngdoc method
+         * @name sortDown
+         * @methodOf ng-puremodels.service:sorting
+         *
+         * @param {pname} string name of property
+         *
+         * @description
+         * change meta data to reflect sort down
+         */
         this.sortDown = function (pname) {
             changeStatus(pname, -1);
         }
 
+        /**
+         * @ngdoc method
+         * @name sortToggle
+         * @methodOf ng-puremodels.service:sorting
+         *
+         * @param {pname} string name of property
+         *
+         * @description
+         * toogle meta data to reflect up or down
+         */
         this.sortToggle = function (pname) {
             var status = getStatus(pname);
-            console.log('pname:', pname, ' status:', status);
+            //console.log('pname:', pname, ' status:', status);
             if (getStatus(pname).sortDir === 0) {
                 _this.sortDown(pname);
                 return;
@@ -1228,10 +1316,29 @@ angular.module('ng-puremodels').factory('sorting', function () {
             changeStatus(pname, status.sortDir * -1);
         }
 
+        /**
+         * @ngdoc method
+         * @name sortReset
+         * @methodOf ng-puremodels.service:sorting
+         *
+         * @param {pname} string name of property
+         *
+         * @description
+         * reset meta data to default
+         */
         this.sortReset = function (pname) {
             changeStatus(pname, getStatus(pname).defaultSortDir);
         }
 
+        /**
+         * @ngdoc method
+         * @name sortAllReset
+         * @methodOf ng-puremodels.service:sorting
+         *
+         *
+         * @description
+         * reset all meta data to default
+         */
         this.sortAllReset = function () {
             for (var i = 0; i < names.length; i++) {
                 var status = getStatus(names[i]);
@@ -1240,6 +1347,15 @@ angular.module('ng-puremodels').factory('sorting', function () {
             _this.onChange();
         }
 
+        /**
+         * @ngdoc method
+         * @name getStatusVerbose
+         * @methodOf ng-puremodels.service:sorting
+         *
+         *
+         * @description
+         * return status translated to human readable string. good for mapping to css classes
+         */
         this.getStatusVerbose = function(pname, translation) {
             if (translation === undefined) {
                 translation = ['sort-asc', 'sort', 'sort-desc'];
@@ -1250,6 +1366,15 @@ angular.module('ng-puremodels').factory('sorting', function () {
             return translation[status.sortDir+1];
         }
 
+        /**
+         * @ngdoc method
+         * @name onChange
+         * @methodOf ng-puremodels.service:sorting
+         *
+         *
+         * @description
+         * method to call when sort changed. Use it for server side sorting
+         */
         this.onChange = defaultOnChange;
 
         // public properties
@@ -1270,7 +1395,7 @@ angular.module('ng-puremodels').factory('sorting', function () {
  * like trees, file systems, data structure etc
  **/
 angular.module('ng-puremodels').factory('tree', ['selectable', function (selectable) {
-    var result = function (someObject, provider) {
+    var result = function (someObject, provider, decorateNodeOnCreate) {
         var _this = this;
         var root = someObject;
         var selectedNode = undefined;
@@ -1299,6 +1424,8 @@ angular.module('ng-puremodels').factory('tree', ['selectable', function (selecta
             };
         }
 
+
+        // private methods
         function getParent(node) {
             var path = node.path;
             if (path.length === 0) {
@@ -1355,7 +1482,7 @@ angular.module('ng-puremodels').factory('tree', ['selectable', function (selecta
             if (parentNode === undefined) {
                 return; // cant remove root
             }
-            var indexOfNodeInParent = node.path[node.path.length-1];
+            var indexOfNodeInParent = node.path[node.path.length - 1];
             parentNode.children.splice(indexOfNodeInParent, 1);
             resetNode(parentNode);
         }
@@ -1375,7 +1502,7 @@ angular.module('ng-puremodels').factory('tree', ['selectable', function (selecta
                 }
             }
 
-            parentOfAnotherNode.children.splice(index+1, 0, node);
+            parentOfAnotherNode.children.splice(index + 1, 0, node);
 
             resetNode(parentOfAnotherNode);
         }
@@ -1396,22 +1523,62 @@ angular.module('ng-puremodels').factory('tree', ['selectable', function (selecta
             return res;
         }
 
-        function selectNode(node) {
-            node.selected = true;
-            selectedNode = node;
+        function setSelectedAndFireChangeEvent(node, isSelected) {
+
+            if (node === undefined) {
+                // wrong invocation
+                return;
+            }
+
+
+            if (selectedNode !== undefined && selectedNode.id === node.id && selectedNode.selected == node.selected) {
+                // nothing changed, do nothing
+                return;
+            }
+
+
+            var oldSelectedNode = selectedNode;
+            if (oldSelectedNode !== undefined) {
+                oldSelectedNode.selected = false;
+            }
+
+
+            if (isSelected == true) {
+                selectedNode = node;
+                selectedNode.selected = isSelected;
+            } else {
+                selectedNode = undefined;
+            }
+
+
+            // fire event
+            fireChangeSelectionEvent(oldSelectedNode, selectedNode);
 
 
         }
 
+        function fireChangeSelectionEvent(oldSelectedNode, newSelectedNode) {
+            try {
+                if (_this.fireChangeSelectionEvent !== undefined) {
+                    _this.fireChangeSelectionEvent(oldSelectedNode, newSelectedNode);
+                }
+            } catch (err) {
+                console.log(err);
+            }
+        }
+
+        function selectNode(node) {
+            setSelectedAndFireChangeEvent(node, true);
+        }
+
         function selectNodeAndLoadChildren(node, callback) {
-            node.selected = true;
-            selectedNode = node;
+            setSelectedAndFireChangeEvent(node, true);
 
             loadNodeChildrenAsync(node, callback);
         }
 
         function unselectNode(node) {
-            node.selected = false;
+            setSelectedAndFireChangeEvent(node, false);
         }
 
         function getSelectedNode() {
@@ -1450,7 +1617,7 @@ angular.module('ng-puremodels').factory('tree', ['selectable', function (selecta
 
 
         function expandNode(node) {
-            expandNodeAsync(node, function(nn) {
+            expandNodeAsync(node, function (nn) {
                 recomputeArrayOfVisibleNodes();
             });
         }
@@ -1462,7 +1629,8 @@ angular.module('ng-puremodels').factory('tree', ['selectable', function (selecta
 
         function loadNodeChildrenAsync(node, callback) {
             if (callback === undefined) {
-                callback = function() {};
+                callback = function () {
+                };
             }
 
             if (!node.leaf) {
@@ -1477,8 +1645,12 @@ angular.module('ng-puremodels').factory('tree', ['selectable', function (selecta
                             node.children.push(newNode);
                         }
 
+                        if (_this.decorateNodeOnCreate === undefined) {
+                            node.selectableChildren = new selectable(node.children);
+                        } else {
+                            _this.decorateNodeOnCreate(node);
+                        }
 
-                        node.selectableChildren = new selectable(node.children);
 
                         if (callback !== undefined) {
                             callback(node);
@@ -1505,11 +1677,11 @@ angular.module('ng-puremodels').factory('tree', ['selectable', function (selecta
 
         function expandAllAsync(node, callback) {
             if (!node.leaf) {
-                expandNodeAsync(node, function(nn) {
+                expandNodeAsync(node, function (nn) {
                     var count = 0;
                     for (var i = 0; i < nn.children.length; i++) {
                         var child = nn.children[i];
-                        expandAllAsync(child, function() {
+                        expandAllAsync(child, function () {
                             count++;
                             if (count === nn.children.length) {
                                 callback();
@@ -1559,8 +1731,8 @@ angular.module('ng-puremodels').factory('tree', ['selectable', function (selecta
                     break; // root node
                 }
 
-                var indexInParent = current.path[current.path.length-1];
-                var nextIndexInParent = indexInParent+1;
+                var indexInParent = current.path[current.path.length - 1];
+                var nextIndexInParent = indexInParent + 1;
 
                 var currentParent = getParent(current);
                 if (currentParent === undefined || currentParent.children.length === nextIndexInParent) {
@@ -1588,8 +1760,8 @@ angular.module('ng-puremodels').factory('tree', ['selectable', function (selecta
                 }
             }
 
-            var indexInParent = node.path[node.path.length-1];
-            var nextIndexInParent = indexInParent+1;
+            var indexInParent = node.path[node.path.length - 1];
+            var nextIndexInParent = indexInParent + 1;
             if (node.leaf) {
                 if (nodeParent.children.length === nextIndexInParent) {
                     callback(findNextInParent(node));
@@ -1600,7 +1772,7 @@ angular.module('ng-puremodels').factory('tree', ['selectable', function (selecta
                 }
             } else {
                 // not leaf
-                expandNodeAsync(node, function(nn){
+                expandNodeAsync(node, function (nn) {
                     if (nn.children !== undefined && nn.children.length > 0) {
                         // return first child
                         callback(nn.children[0]);
@@ -1666,6 +1838,20 @@ angular.module('ng-puremodels').factory('tree', ['selectable', function (selecta
         this.rootNode = rootNode;
 
         // public methods
+
+        function fireChangeSelectionEventDefault(oldSelectedObject, newSelectedObject) {
+            console.log('node selection:', oldSelectedObject, ';', newSelectedObject);
+        }
+
+        /**
+         * @ngdoc method
+         * @name fireChangeSelectionEvent
+         * @propertyOf ng-puremodels.service:tree
+         *
+         * @description
+         * function to invoke on change node selection event
+         */
+        this.fireChangeSelectionEvent = fireChangeSelectionEventDefault;
 
         /**
          * @ngdoc method
@@ -1810,6 +1996,18 @@ angular.module('ng-puremodels').factory('tree', ['selectable', function (selecta
          * @param {callback} function to call when done
          */
         this.loadNodeChildrenAsync = loadNodeChildrenAsync;
+
+        /**
+         * @ngdoc method
+         * @name decorateNodeOnCreate
+         * @methodOf ng-puremodels.service:tree
+         *
+         * @description
+         * add more data on node when children are ready: for example create 'selectable' or 'paging'
+         * if not specified, create 'selectableChildren' as 'selectable'
+         * @param {node} node to decorate
+         */
+        this.decorateNodeOnCreate = decorateNodeOnCreate;
 
         /**
          * @ngdoc method
